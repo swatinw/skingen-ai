@@ -152,25 +152,3 @@ elif nav_option == "👤 My Account":
 elif nav_option == "📝 My Routines":
     st.header("📝 Your Recent Routines")
     st.markdown("This feature is only available in the Pro version. Coming soon!")
-
-# Footer
-st.markdown("""
-<div class='footer'>
-    <div class='column'>
-        <h5>SIGN UP</h5>
-        <p>SHOPPING<br>Offers<br>Gift Cards<br>AfterPay<br>Store Locator<br>Corporate Info<br>Book A Service<br>Scent Finder</p>
-    </div>
-    <div class='column'>
-        <h5>NEED HELP?</h5>
-        <p>Returns/Exchanges<br>FAQ<br>Shipping<br>Account Sign-Up / Login<br>Live Chat with Customer Service<br>Live Chat with a Stylist<br>Customer Service: (866) 305 4706</p>
-    </div>
-    <div class='column'>
-        <h5>ABOUT BRAND</h5>
-        <p>Our Values<br>Commitments<br>Sustainability<br>Stories<br>Corporate Info<br>Careers<br>Ingredients Glossary</p>
-    </div>
-    <div class='column'>
-        <h5>PRIVACY & TERMS</h5>
-        <p>Privacy Policy<br>Do Not Sell or Share My Personal Information / Targeted Ads<br>Limit Use of My Sensitive Personal Information<br>Terms & Conditions<br>Accessibility<br>Supplier Relations<br>Consumer Health Data Privacy Statement</p>
-    </div>
-</div>
-""", unsafe_allow_html=True)
