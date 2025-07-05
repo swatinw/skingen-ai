@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#d98c9f"          # Pastel pink
+backgroundColor = "#fff6f1"       # Soft beige
+secondaryBackgroundColor = "#fbeaec"  # Slightly pink tone for widgets
+textColor = "#2e2e2e"
+font = "sans serif"
