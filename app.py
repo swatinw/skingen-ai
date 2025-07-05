@@ -3,16 +3,19 @@ from openai import OpenAI
 import os
 from dotenv import load_dotenv
 from PIL import Image
+from fpdf import FPDF
+import base64
+import io
 
-# Load .env and API key
+# Load environment variables
 load_dotenv()
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 client = OpenAI()
 
-# Streamlit config
+# Page configuration
 st.set_page_config(page_title="SkinGen AI", layout="wide")
 
-# Custom pastel-pink theme CSS
+# Custom styling
 st.markdown("""
     <style>
     .stButton>button {
@@ -47,7 +50,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Header with logo and brand text ---
+# Header
 header_col = st.columns([1])[0]
 with header_col:
     st.markdown("<div class='app-header'>", unsafe_allow_html=True)
@@ -64,7 +67,7 @@ with header_col:
     """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- Main Form ---
+# Form
 st.markdown("### 🧴 Tell us about your skin")
 with st.form("skin_form"):
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -74,7 +77,34 @@ with st.form("skin_form"):
         ingredients = st.text_area("Home Ingredients (optional)", placeholder="e.g. honey, turmeric, aloe vera")
         submit_btn = st.form_submit_button("✨ Generate My Routine")
 
-# --- GPT Routine Generation ---
+# PDF Generator Function
+def generate_pdf(skin_type, goal, routine_text):
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.set_text_color(217, 140, 159)
+    pdf.set_font("Arial", style='B', size=16)
+    pdf.cell(200, 10, "SkinGen AI – Personalized Skincare Routine", ln=True, align='C')
+
+    pdf.set_text_color(0, 0, 0)
+    pdf.set_font("Arial", size=12)
+    pdf.ln(10)
+    pdf.cell(200, 10, f"Skin Type: {skin_type}", ln=True)
+    pdf.cell(200, 10, f"Goal: {goal}", ln=True)
+    pdf.ln(10)
+
+    for line in routine_text.split('\n'):
+        pdf.multi_cell(0, 10, line)
+
+    pdf_buffer = io.BytesIO()
+    pdf.output(pdf_buffer)
+    pdf_data = pdf_buffer.getvalue()
+    b64 = base64.b64encode(pdf_data).decode()
+    href = f'<a href="data:application/octet-stream;base64,{b64}" download="skingen_routine.pdf">📄 Download Routine as PDF</a>'
+    return href
+
+# Routine Generation
 if submit_btn:
     with st.spinner("Creating your custom skincare routine..."):
         prompt = f"""
@@ -98,15 +128,17 @@ if submit_btn:
             st.subheader("🌞 Your Personalized Routine")
             st.markdown(result)
 
-            # --- Visual Enhancements ---
-            st.markdown("## 🖼 Explore Your Routine Visually")
+            # PDF Export
+            pdf_link = generate_pdf(skin_type, goal, result)
+            st.markdown("---")
+            st.markdown("### 📅 Download Your Routine")
+            st.markdown(pdf_link, unsafe_allow_html=True)
 
-            # Static visual image (download and place in assets/)
+            # Visual Enhancements
+            st.markdown("## 🖼 Explore Your Routine Visually")
             st.image("assets/morning_routine_visual.png", caption="Your gentle morning skincare flow")
 
-            # YouTube video suggestions based on skincare goal
             st.markdown("### 🎥 Recommended Routine Video")
-
             goal_videos = {
                 "Glow": "https://www.youtube.com/watch?v=ZgEqyJFzQXg",
                 "Acne Control": "https://www.youtube.com/watch?v=wHAsW9uFCYI",
@@ -114,7 +146,6 @@ if submit_btn:
                 "Hydration": "https://www.youtube.com/watch?v=GzEdAVsxzrU",
                 "Even Tone": "https://www.youtube.com/watch?v=l6VpZuFgWbM"
             }
-
             video_url = goal_videos.get(goal)
             if video_url:
                 st.video(video_url)
