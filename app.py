@@ -150,5 +150,21 @@ if submit_btn:
             if video_url:
                 st.video(video_url)
 
+            # Product Recommendations
+            st.markdown("---")
+            st.markdown("### 🛍️ Recommended Products")
+            if skin_type == "Oily" and goal == "Acne Control":
+                st.markdown("- [CeraVe Foaming Facial Cleanser – Shop on Amazon](https://www.amazon.com/dp/B01N1LVDMD)")
+                st.markdown("- [The Ordinary Niacinamide 10% Serum – Shop on Sephora](https://www.sephora.com/product/the-ordinary-niacinamide-10-zinc-1-P427417)")
+            elif skin_type == "Dry" and goal == "Hydration":
+                st.markdown("- [Neutrogena Hydro Boost Gel Cream – Shop on Amazon](https://www.amazon.com/dp/B00NR1YQK4)")
+                st.markdown("- [Laneige Water Sleeping Mask – Shop on Sephora](https://www.sephora.com/product/laneige-water-sleeping-mask-P420651)")
+            elif goal == "Anti-Aging":
+                st.markdown("- [Olay Regenerist Micro-Sculpting Cream – Shop on Amazon](https://www.amazon.com/dp/B0039UTWME)")
+                st.markdown("- [Drunk Elephant C-Firma Day Serum – Shop on Sephora](https://www.sephora.com/product/drunk-elephant-c-firma-day-serum-P411108)")
+            else:
+                st.markdown("- [CeraVe Daily Moisturizing Lotion – Shop on Amazon](https://www.amazon.com/dp/B000YJ2SLG)")
+                st.markdown("- [Innisfree Green Tea Seed Serum – Shop on Sephora](https://www.sephora.com/product/innisfree-green-tea-seed-serum-P438778)")
+
         except Exception as e:
             st.error(f"Error generating response: {e}")
