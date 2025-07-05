@@ -4,15 +4,15 @@ import os
 from dotenv import load_dotenv
 from PIL import Image
 
-# Load environment variables
+# Load .env and API key
 load_dotenv()
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 client = OpenAI()
 
-# Set Streamlit page settings
+# Streamlit config
 st.set_page_config(page_title="SkinGen AI", layout="wide")
 
-# Optional luxury styling override
+# Custom pastel-pink theme CSS
 st.markdown("""
     <style>
     .stButton>button {
@@ -47,7 +47,7 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Top Header with Logo + Title on Left ---
+# --- Header with logo and brand text ---
 header_col = st.columns([1])[0]
 with header_col:
     st.markdown("<div class='app-header'>", unsafe_allow_html=True)
@@ -64,7 +64,7 @@ with header_col:
     """, unsafe_allow_html=True)
     st.markdown("</div>", unsafe_allow_html=True)
 
-# --- Centered Form ---
+# --- Main Form ---
 st.markdown("### 🧴 Tell us about your skin")
 with st.form("skin_form"):
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -97,6 +97,27 @@ if submit_btn:
             result = response.choices[0].message.content
             st.subheader("🌞 Your Personalized Routine")
             st.markdown(result)
+
+            # --- Visual Enhancements ---
+            st.markdown("## 🖼 Explore Your Routine Visually")
+
+            # Static visual image (download and place in assets/)
+            st.image("assets/morning_routine_visual.png", caption="Your gentle morning skincare flow")
+
+            # YouTube video suggestions based on skincare goal
+            st.markdown("### 🎥 Recommended Routine Video")
+
+            goal_videos = {
+                "Glow": "https://www.youtube.com/watch?v=ZgEqyJFzQXg",
+                "Acne Control": "https://www.youtube.com/watch?v=wHAsW9uFCYI",
+                "Anti-Aging": "https://www.youtube.com/watch?v=yRIM5QxM6eI",
+                "Hydration": "https://www.youtube.com/watch?v=GzEdAVsxzrU",
+                "Even Tone": "https://www.youtube.com/watch?v=l6VpZuFgWbM"
+            }
+
+            video_url = goal_videos.get(goal)
+            if video_url:
+                st.video(video_url)
 
         except Exception as e:
             st.error(f"Error generating response: {e}")
