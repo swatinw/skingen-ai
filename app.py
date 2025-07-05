@@ -14,11 +14,11 @@ client = OpenAI()
 # Page configuration
 st.set_page_config(page_title="SkinGen AI", layout="wide")
 
-# Custom styling
+# Custom styling with pastel beige background
 st.markdown("""
     <style>
-    body {
-        background-color: #fdf6f0 !important;  /* pastel beige */
+    html, body, [class*="css"]  {
+        background-color: #fdf6f0 !important;
     }
     .stButton>button {
         background-color: #d98c9f;
@@ -52,6 +52,10 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# Track usage
+if 'routine_count' not in st.session_state:
+    st.session_state['routine_count'] = 0
+
 # Header
 header_col = st.columns([1])[0]
 with header_col:
@@ -71,13 +75,17 @@ with header_col:
 
 # Form
 st.markdown("### 🧴 Tell us about your skin")
-with st.form("skin_form"):
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        skin_type = st.selectbox("Skin Type", ["Dry", "Oily", "Combination", "Sensitive", "Normal"])
-        goal = st.selectbox("Skincare Goal", ["Glow", "Acne Control", "Anti-Aging", "Hydration", "Even Tone"])
-        ingredients = st.text_area("Home Ingredients (optional)", placeholder="e.g. honey, turmeric, aloe vera")
-        submit_btn = st.form_submit_button("✨ Generate My Routine")
+if st.session_state['routine_count'] >= 1:
+    st.warning("🚫 You've reached your daily limit of 1 free routine. Upgrade to Pro for unlimited access!")
+    st.markdown("[🔓 Upgrade to Pro via Gumroad](https://your-gumroad-link.com)")
+else:
+    with st.form("skin_form"):
+        col1, col2, col3 = st.columns([1, 2, 1])
+        with col2:
+            skin_type = st.selectbox("Skin Type", ["Dry", "Oily", "Combination", "Sensitive", "Normal"])
+            goal = st.selectbox("Skincare Goal", ["Glow", "Acne Control", "Anti-Aging", "Hydration", "Even Tone"])
+            ingredients = st.text_area("Home Ingredients (optional)", placeholder="e.g. honey, turmeric, aloe vera")
+            submit_btn = st.form_submit_button("✨ Generate My Routine")
 
 # PDF Generator Function
 def generate_pdf(skin_type, goal, routine_text):
@@ -105,7 +113,7 @@ def generate_pdf(skin_type, goal, routine_text):
     return href
 
 # Routine Generation
-if submit_btn:
+if 'skin_type' in locals() and submit_btn:
     with st.spinner("Creating your custom skincare routine..."):
         prompt = f"""
         Act as a skincare and DIY beauty expert.
@@ -125,6 +133,7 @@ if submit_btn:
                 temperature=0.7
             )
             result = response.choices[0].message.content
+            st.session_state['routine_count'] += 1
             st.subheader("🌞 Your Personalized Routine")
             st.markdown(result)
 
