@@ -85,7 +85,7 @@ def generate_pdf(skin_type, goal, routine_text):
 
     pdf.set_text_color(217, 140, 159)
     pdf.set_font("Arial", style='B', size=16)
-    pdf.cell(200, 10, "SkinGen AI – Personalized Skincare Routine", ln=True, align='C')
+    pdf.cell(200, 10, "SkinGen AI - Personalized Skincare Routine", ln=True, align='C')
 
     pdf.set_text_color(0, 0, 0)
     pdf.set_font("Arial", size=12)
@@ -131,7 +131,7 @@ if submit_btn:
             # PDF Export
             pdf_link = generate_pdf(skin_type, goal, result)
             st.markdown("---")
-            st.markdown("### 📅 Download Your Routine")
+            st.markdown("### 📥 Download Your Routine")
             st.markdown(pdf_link, unsafe_allow_html=True)
 
             # Visual Enhancements
