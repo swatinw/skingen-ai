@@ -17,6 +17,9 @@ st.set_page_config(page_title="SkinGen AI", layout="wide")
 # Custom styling
 st.markdown("""
     <style>
+    body {
+        background-color: #fdf6f0 !important;  /* pastel beige */
+    }
     .stButton>button {
         background-color: #d98c9f;
         color: white;
