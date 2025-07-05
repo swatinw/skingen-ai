@@ -30,29 +30,41 @@ st.markdown("""
         align-items: center;
         padding: 0.5rem 1rem;
     }
-    .app-header .left { display: flex; align-items: center; }
-    .app-header .center { text-align: center; flex-grow: 1; }
-    .app-header .right { display: flex; gap: 1rem; align-items: center; }
-    .app-title { font-size: 2rem; font-weight: bold; color: #2e2e2e; }
-    .app-subtitle { font-size: 1.1rem; font-style: italic; color: #666; }
+    .app-center {
+        text-align: center;
+        flex-grow: 1;
+    }
+    .app-icons {
+        font-size: 1.5rem;
+        display: flex;
+        gap: 1.5rem;
+        justify-content: flex-end;
+    }
+    .app-title { font-size: 2rem; font-weight: bold; color: #2e2e2e; margin-top: 0.5rem; }
+    .app-subtitle { font-size: 1.1rem; font-style: italic; color: #666; margin-bottom: 0.5rem; }
     .footer { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #ccc; font-size: 0.9rem; color: #444; }
     .footer h5 { margin-bottom: 0.5rem; }
     .footer .column { width: 200px; display: inline-block; vertical-align: top; margin-right: 40px; }
     </style>
 """, unsafe_allow_html=True)
 
-# Header with logo and nav icons
-st.markdown("<div class='app-header'>", unsafe_allow_html=True)
-st.markdown("""
-<div class='left'>🔍</div>
-<div class='center'>
-    <img src='https://raw.githubusercontent.com/yourusername/yourrepo/main/assets/skingen_logo.png' width='80'>
-    <div class='app-title'>SkinGen AI</div>
-    <div class='app-subtitle'>Your personalized DIY skincare planner</div>
-</div>
-<div class='right'>👤 ❤️ 🛍️</div>
-""", unsafe_allow_html=True)
-st.markdown("</div>", unsafe_allow_html=True)
+# Header layout with logo + centered title + right icons
+col1, col2, col3 = st.columns([1, 2, 1])
+
+with col1:
+    st.markdown("🔍", unsafe_allow_html=True)
+
+with col2:
+    try:
+        logo = Image.open("assets/skingen_logo.png")
+        st.image(logo, width=80)
+    except:
+        st.warning("Logo not found")
+    st.markdown("<div class='app-title'>SkinGen AI</div>", unsafe_allow_html=True)
+    st.markdown("<div class='app-subtitle'>Your personalized DIY skincare planner</div>", unsafe_allow_html=True)
+
+with col3:
+    st.markdown("<div class='app-icons'>👤 ❤️ 🛍️</div>", unsafe_allow_html=True)
 
 # Navigation Pages
 if nav_option == "🏠 Home":
