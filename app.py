@@ -5,128 +5,104 @@ from dotenv import load_dotenv
 from PIL import Image
 from fpdf import FPDF
 import base64
+import requests
 
 # Load environment variables
 load_dotenv()
 os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
 client = OpenAI()
 
-# Page configuration
 st.set_page_config(page_title="SkinGen AI", layout="wide")
 
-# Custom styling with rose beige background
+# Navigation Sidebar
+st.sidebar.title("🧭 Navigation")
+nav_option = st.sidebar.radio("Go to", ["🏠 Home", "🛍️ Shop", "👤 My Account", "📝 My Routines"])
+
+# Header Styling and Layout
 st.markdown("""
     <style>
     html, body, [class*="css"]  {
-        background-color: #f6e7e7 !important;  /* Rose Beige */
-    }
-    .stButton>button {
-        background-color: #d98c9f;
-        color: white;
-        border-radius: 10px;
-        font-weight: bold;
-    }
-    .stSelectbox div, .stTextArea textarea {
-        border-radius: 8px;
+        background-color: #fdf6f0 !important;
     }
     .app-header {
         display: flex;
+        justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
+        padding: 0.5rem 1rem;
     }
-    .app-header img {
-        width: 90px;
-        margin-right: 20px;
-    }
-    .app-title {
-        font-size: 1.8rem;
-        font-weight: bold;
-        color: #2e2e2e;
-    }
-    .app-subtitle {
-        font-size: 1rem;
-        font-style: italic;
-        color: #666666;
-        margin-top: -8px;
-    }
+    .app-header .left { display: flex; align-items: center; }
+    .app-header .center { text-align: center; flex-grow: 1; }
+    .app-header .right { display: flex; gap: 1rem; align-items: center; }
+    .app-title { font-size: 2rem; font-weight: bold; color: #2e2e2e; }
+    .app-subtitle { font-size: 1.1rem; font-style: italic; color: #666; }
+    .footer { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #ccc; font-size: 0.9rem; color: #444; }
+    .footer h5 { margin-bottom: 0.5rem; }
+    .footer .column { width: 200px; display: inline-block; vertical-align: top; margin-right: 40px; }
     </style>
 """, unsafe_allow_html=True)
 
-# Track usage
-if 'routine_count' not in st.session_state:
-    st.session_state['routine_count'] = 0
+# Header with logo and nav icons
+st.markdown("<div class='app-header'>", unsafe_allow_html=True)
+st.markdown("""
+<div class='left'>🔍</div>
+<div class='center'>
+    <img src='https://raw.githubusercontent.com/yourusername/yourrepo/main/assets/skingen_logo.png' width='80'>
+    <div class='app-title'>SkinGen AI</div>
+    <div class='app-subtitle'>Your personalized DIY skincare planner</div>
+</div>
+<div class='right'>👤 ❤️ 🛍️</div>
+""", unsafe_allow_html=True)
+st.markdown("</div>", unsafe_allow_html=True)
 
-# Header
-header_col = st.columns([1])[0]
-with header_col:
-    st.markdown("<div class='app-header'>", unsafe_allow_html=True)
-    try:
-        logo = Image.open("assets/skingen_logo.png")
-        st.image(logo, width=90)
-    except Exception as e:
-        st.warning(f"⚠️ Logo not found. {e}")
-    st.markdown("""
-        <div>
-            <div class='app-title'>SkinGen AI</div>
-            <div class='app-subtitle'>Since 2025 · Your personalized DIY skincare planner</div>
-        </div>
-    """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+# Navigation Pages
+if nav_option == "🏠 Home":
+    if 'routine_count' not in st.session_state:
+        st.session_state['routine_count'] = 0
 
-# Form
-st.markdown("### 🧴 Tell us about your skin")
-if st.session_state['routine_count'] >= 1:
-    st.warning("🚫 You've reached your daily limit of 1 free routine. Upgrade to Pro for unlimited access!")
-    st.markdown("[🔓 Upgrade to Pro via Gumroad](https://your-gumroad-link.com)")
-else:
-    with st.form("skin_form"):
-        col1, col2, col3 = st.columns([1, 2, 1])
-        with col2:
+    st.markdown("### 🧴 Tell us about your skin")
+    if st.session_state['routine_count'] >= 1:
+        st.warning("🚫 You've reached your daily limit of 1 free routine. Upgrade to Pro for unlimited access!")
+        st.markdown("[🔓 Upgrade to Pro via Gumroad](https://your-gumroad-link.com)")
+    else:
+        with st.form("skin_form"):
             skin_type = st.selectbox("Skin Type", ["Dry", "Oily", "Combination", "Sensitive", "Normal"])
             goal = st.selectbox("Skincare Goal", ["Glow", "Acne Control", "Anti-Aging", "Hydration", "Even Tone"])
             ingredients = st.text_area("Home Ingredients (optional)", placeholder="e.g. honey, turmeric, aloe vera")
+            email = st.text_input("📧 Want daily reminders? Enter your email")
             submit_btn = st.form_submit_button("✨ Generate My Routine")
 
-# PDF Generator Function
-def generate_pdf(skin_type, goal, routine_text):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
+    def generate_pdf(skin_type, goal, routine_text):
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font("Arial", size=12)
+        pdf.set_text_color(217, 140, 159)
+        pdf.set_font("Arial", style='B', size=16)
+        pdf.cell(200, 10, "SkinGen AI - Personalized Skincare Routine", ln=True, align='C')
+        pdf.set_text_color(0, 0, 0)
+        pdf.set_font("Arial", size=12)
+        pdf.ln(10)
+        pdf.cell(200, 10, f"Skin Type: {skin_type}", ln=True)
+        pdf.cell(200, 10, f"Goal: {goal}", ln=True)
+        pdf.ln(10)
+        for line in routine_text.split('\n'):
+            pdf.multi_cell(0, 10, line)
+        pdf_data = pdf.output(dest='S').encode('latin1')
+        b64 = base64.b64encode(pdf_data).decode()
+        href = f'<a href="data:application/octet-stream;base64,{b64}" download="skingen_routine.pdf">📄 Download Routine as PDF</a>'
+        return href
 
-    pdf.set_text_color(217, 140, 159)
-    pdf.set_font("Arial", style='B', size=16)
-    pdf.cell(200, 10, "SkinGen AI - Personalized Skincare Routine", ln=True, align='C')
-
-    pdf.set_text_color(0, 0, 0)
-    pdf.set_font("Arial", size=12)
-    pdf.ln(10)
-    pdf.cell(200, 10, f"Skin Type: {skin_type}", ln=True)
-    pdf.cell(200, 10, f"Goal: {goal}", ln=True)
-    pdf.ln(10)
-
-    for line in routine_text.split('\n'):
-        pdf.multi_cell(0, 10, line)
-
-    pdf_data = pdf.output(dest='S').encode('latin1')
-    b64 = base64.b64encode(pdf_data).decode()
-    href = f'<a href="data:application/octet-stream;base64,{b64}" download="skingen_routine.pdf">📄 Download Routine as PDF</a>'
-    return href
-
-# Routine Generation
-if 'skin_type' in locals() and submit_btn:
-    with st.spinner("Creating your custom skincare routine..."):
-        prompt = f"""
-        Act as a skincare and DIY beauty expert.
-        Skin type: {skin_type}
-        Skincare goal: {goal}
-        Available ingredients: {ingredients if ingredients else "none"}
-
-        Please provide:
-        1. A gentle morning skincare routine
-        2. A restorative night routine
-        3. Two easy DIY skincare recipes using available ingredients (or simple kitchen items)
-        """
-        try:
+    if submit_btn:
+        with st.spinner("Creating your custom skincare routine..."):
+            prompt = f"""
+            Act as a skincare and DIY beauty expert.
+            Skin type: {skin_type}
+            Skincare goal: {goal}
+            Available ingredients: {ingredients if ingredients else "none"}
+            Please provide:
+            1. A gentle morning skincare routine
+            2. A restorative night routine
+            3. Two easy DIY skincare recipes
+            """
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}],
@@ -136,44 +112,53 @@ if 'skin_type' in locals() and submit_btn:
             st.session_state['routine_count'] += 1
             st.subheader("🌞 Your Personalized Routine")
             st.markdown(result)
-
-            # PDF Export
             pdf_link = generate_pdf(skin_type, goal, result)
             st.markdown("---")
             st.markdown("### 📥 Download Your Routine")
             st.markdown(pdf_link, unsafe_allow_html=True)
 
-            # Visual Enhancements
-            st.markdown("## 🖼 Explore Your Routine Visually")
-            st.image("assets/morning_routine_visual.png", caption="Your gentle morning skincare flow")
+            if email:
+                webhook_url = "https://hooks.zapier.com/hooks/catch/xxxx/yyyy"  # Replace with real webhook
+                payload = {"email": email, "routine": result}
+                try:
+                    zap = requests.post(webhook_url, json=payload)
+                    if zap.status_code == 200:
+                        st.success("✅ You'll receive your daily routine via email!")
+                    else:
+                        st.warning("⚠️ Could not register for email reminders.")
+                except:
+                    st.warning("⚠️ Email sending failed.")
 
-            st.markdown("### 🎥 Recommended Routine Video")
-            goal_videos = {
-                "Glow": "https://www.youtube.com/watch?v=ZgEqyJFzQXg",
-                "Acne Control": "https://www.youtube.com/watch?v=wHAsW9uFCYI",
-                "Anti-Aging": "https://www.youtube.com/watch?v=yRIM5QxM6eI",
-                "Hydration": "https://www.youtube.com/watch?v=GzEdAVsxzrU",
-                "Even Tone": "https://www.youtube.com/watch?v=l6VpZuFgWbM"
-            }
-            video_url = goal_videos.get(goal)
-            if video_url:
-                st.video(video_url)
+elif nav_option == "🛍️ Shop":
+    st.header("🛍️ Shop Recommended Products")
+    st.markdown("Coming soon: Affiliate bundles, DIY kits, and luxury skincare collections.")
 
-            # Product Recommendations
-            st.markdown("---")
-            st.markdown("### 🛍️ Recommended Products")
-            if skin_type == "Oily" and goal == "Acne Control":
-                st.markdown("- [CeraVe Foaming Facial Cleanser – Shop on Amazon](https://www.amazon.com/dp/B01N1LVDMD)")
-                st.markdown("- [The Ordinary Niacinamide 10% Serum – Shop on Sephora](https://www.sephora.com/product/the-ordinary-niacinamide-10-zinc-1-P427417)")
-            elif skin_type == "Dry" and goal == "Hydration":
-                st.markdown("- [Neutrogena Hydro Boost Gel Cream – Shop on Amazon](https://www.amazon.com/dp/B00NR1YQK4)")
-                st.markdown("- [Laneige Water Sleeping Mask – Shop on Sephora](https://www.sephora.com/product/laneige-water-sleeping-mask-P420651)")
-            elif goal == "Anti-Aging":
-                st.markdown("- [Olay Regenerist Micro-Sculpting Cream – Shop on Amazon](https://www.amazon.com/dp/B0039UTWME)")
-                st.markdown("- [Drunk Elephant C-Firma Day Serum – Shop on Sephora](https://www.sephora.com/product/drunk-elephant-c-firma-day-serum-P411108)")
-            else:
-                st.markdown("- [CeraVe Daily Moisturizing Lotion – Shop on Amazon](https://www.amazon.com/dp/B000YJ2SLG)")
-                st.markdown("- [Innisfree Green Tea Seed Serum – Shop on Sephora](https://www.sephora.com/product/innisfree-green-tea-seed-serum-P438778)")
+elif nav_option == "👤 My Account":
+    st.header("👤 My Account")
+    st.markdown("Feature under development. In future, users can log in, save routines, and manage subscription.")
 
-        except Exception as e:
-            st.error(f"Error generating response: {e}")
+elif nav_option == "📝 My Routines":
+    st.header("📝 Your Recent Routines")
+    st.markdown("This feature is only available in the Pro version. Coming soon!")
+
+# Footer
+st.markdown("""
+<div class='footer'>
+    <div class='column'>
+        <h5>SIGN UP</h5>
+        <p>SHOPPING<br>Offers<br>Gift Cards<br>AfterPay<br>Store Locator<br>Corporate Info<br>Book A Service<br>Scent Finder</p>
+    </div>
+    <div class='column'>
+        <h5>NEED HELP?</h5>
+        <p>Returns/Exchanges<br>FAQ<br>Shipping<br>Account Sign-Up / Login<br>Live Chat with Customer Service<br>Live Chat with a Stylist<br>Customer Service: (866) 305 4706</p>
+    </div>
+    <div class='column'>
+        <h5>ABOUT BRAND</h5>
+        <p>Our Values<br>Commitments<br>Sustainability<br>Stories<br>Corporate Info<br>Careers<br>Ingredients Glossary</p>
+    </div>
+    <div class='column'>
+        <h5>PRIVACY & TERMS</h5>
+        <p>Privacy Policy<br>Do Not Sell or Share My Personal Information / Targeted Ads<br>Limit Use of My Sensitive Personal Information<br>Terms & Conditions<br>Accessibility<br>Supplier Relations<br>Consumer Health Data Privacy Statement</p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
