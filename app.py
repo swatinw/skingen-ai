@@ -14,11 +14,11 @@ client = OpenAI()
 # Page configuration
 st.set_page_config(page_title="SkinGen AI", layout="wide")
 
-# Custom styling with pastel beige background
+# Custom styling with rose beige background
 st.markdown("""
     <style>
     html, body, [class*="css"]  {
-        background-color: #fdf6f0 !important;
+        background-color: #f6e7e7 !important;  /* Rose Beige */
     }
     .stButton>button {
         background-color: #d98c9f;
