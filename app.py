@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from PIL import Image
 from fpdf import FPDF
 import base64
-import io
 
 # Load environment variables
 load_dotenv()
@@ -97,9 +96,7 @@ def generate_pdf(skin_type, goal, routine_text):
     for line in routine_text.split('\n'):
         pdf.multi_cell(0, 10, line)
 
-    pdf_buffer = io.BytesIO()
-    pdf.output(pdf_buffer)
-    pdf_data = pdf_buffer.getvalue()
+    pdf_data = pdf.output(dest='S').encode('latin1')
     b64 = base64.b64encode(pdf_data).decode()
     href = f'<a href="data:application/octet-stream;base64,{b64}" download="skingen_routine.pdf">📄 Download Routine as PDF</a>'
     return href
