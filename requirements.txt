@@ -10,3 +10,6 @@ fpdf
 openai>=1.0.0
 python-dotenv
 Pillow
+torch
+requests
+transformers

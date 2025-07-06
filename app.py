@@ -1,18 +1,39 @@
+# SkinGen AI with PyTorch-based Local Model (No OpenAI API)
 import streamlit as st
-from openai import OpenAI
 import os
 from dotenv import load_dotenv
 from PIL import Image
 from fpdf import FPDF
 import base64
 import requests
+import torch
+from transformers import GPT2Tokenizer, GPT2LMHeadModel
 
 # Load environment variables
 load_dotenv()
-os.environ["OPENAI_API_KEY"] = os.getenv("OPENAI_API_KEY")
-client = OpenAI()
 
 st.set_page_config(page_title="SkinGen AI", layout="wide")
+
+# Load local language model
+@st.cache_resource
+def load_model():
+    model_name = "distilgpt2"
+    tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+    model = GPT2LMHeadModel.from_pretrained(model_name)
+    return tokenizer, model
+
+tokenizer, model = load_model()
+
+def generate_skincare_routine(skin_type, goal, ingredients, max_length=300):
+    prompt = f"""Skin Type: {skin_type}
+Goal: {goal}
+Ingredients: {ingredients if ingredients else "none"}
+
+Morning Routine:"""
+    inputs = tokenizer.encode(prompt, return_tensors="pt")
+    outputs = model.generate(inputs, max_length=max_length, do_sample=True, top_k=50, temperature=0.7)
+    result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    return result
 
 # Navigation Sidebar
 st.sidebar.title("🧭 Navigation")
@@ -31,6 +52,8 @@ st.markdown("""
         color: #2e2e2e;
         text-align: center;
         margin-top: 10px;
+        position: relative;
+        z-index: 2;
     }
     .app-subtitle {
         font-size: 1.2rem;
@@ -89,22 +112,7 @@ if nav_option == "🏠 Home":
 
     if submit_btn:
         with st.spinner("Creating your custom skincare routine..."):
-            prompt = f"""
-            Act as a skincare and DIY beauty expert.
-            Skin type: {skin_type}
-            Skincare goal: {goal}
-            Available ingredients: {ingredients if ingredients else "none"}
-            Please provide:
-            1. A gentle morning skincare routine
-            2. A restorative night routine
-            3. Two easy DIY skincare recipes
-            """
-            response = client.chat.completions.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.7
-            )
-            result = response.choices[0].message.content
+            result = generate_skincare_routine(skin_type, goal, ingredients)
             st.session_state['routine_count'] += 1
             st.subheader("🌞 Your Personalized Routine")
             st.markdown(result)
@@ -136,3 +144,25 @@ elif nav_option == "👤 My Account":
 elif nav_option == "📝 My Routines":
     st.header("📝 Your Recent Routines")
     st.markdown("This feature is only available in the Pro version. Coming soon!")
+
+# Footer
+st.markdown("""
+<div class='footer'>
+    <div class='column'>
+        <h5>SIGN UP</h5>
+        <p>SHOPPING<br>Offers<br>Gift Cards<br>AfterPay<br>Store Locator<br>Corporate Info<br>Book A Service<br>Scent Finder</p>
+    </div>
+    <div class='column'>
+        <h5>NEED HELP?</h5>
+        <p>Returns/Exchanges<br>FAQ<br>Shipping<br>Account Sign-Up / Login<br>Live Chat with Customer Service<br>Live Chat with a Stylist<br>Customer Service: (866) 305 4706</p>
+    </div>
+    <div class='column'>
+        <h5>ABOUT BRAND</h5>
+        <p>Our Values<br>Commitments<br>Sustainability<br>Stories<br>Corporate Info<br>Careers<br>Ingredients Glossary</p>
+    </div>
+    <div class='column'>
+        <h5>PRIVACY & TERMS</h5>
+        <p>Privacy Policy<br>Do Not Sell or Share My Personal Information / Targeted Ads<br>Limit Use of My Sensitive Personal Information<br>Terms & Conditions<br>Accessibility<br>Supplier Relations<br>Consumer Health Data Privacy Statement</p>
+    </div>
+</div>
+""", unsafe_allow_html=True)
